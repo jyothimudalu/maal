@@ -1,0 +1,938 @@
+GAME PROGRAMMING
+
+
+
+################ DirectX ##################
+Practical 1:Setup Directx 11, Window Framework And Initialize Direct3d Device
+Create Project > Windows Forms App (.NET Framework)
+.NET Framework 2.0
+Click on Project / Solution
+
+Add reference for microsoft.visualc.dll-
+Windows\Microsoft.NET\Framework\v2.0.50727
+
+For Microsoft.direct.directX , draw 3D- 
+Windows\Microsoft.NET\DirectX for Managed Code\1.0.2902.0
+
+After writing the script
+BUild
+Configuration Manager
+Any CPU -> New
+x64 -> x86
+To fix the exception...
+Debug > Windows > Exception settings > Find LoaderLock
+Manage Debugging Assistants > Uncheck LoaderLock
+
+
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Text;
+using System.Windows.Forms;
+using Microsoft.DirectX.Direct3D;
+using Microsoft.DirectX;
+
+
+namespace Practical1
+{
+    public partial class Form1 : Form
+    {
+        Microsoft.DirectX.Direct3D.Device device;
+        public Form1()
+        {
+            InitializeComponent();
+            InitDevice();
+
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void InitDevice()
+        {
+            PresentParameters pp = new PresentParameters();
+            pp.Windowed = true;
+            pp.SwapEffect = SwapEffect.Discard;
+            device = new Device(0, DeviceType.Hardware, this, CreateFlags.HardwareVertexProcessing, pp);
+        }
+
+        public void Render()
+        {
+            device.Clear(ClearFlags.Target, Color.SaddleBrown, 0, 1);
+            device.Present();
+        }
+
+        private void Form1_Paint(object sender, PaintEventArgs e)
+        {
+
+            Render();
+
+        }
+    }
+}
+
+
+Practical2:Buffers, Shaders and HLSL (Draw a triangle using Direct3D 11)
+Prepare Documentation without appropriate description added.
+Create Project same as prac 1
+Add > References > Old references + MicrosoftVisualC.Dll
+To find MicrosoftVisualC.Dll -> Windows -> Microsoft.NET -> Framework -> v2 wala folder -> MicrosoftVIsualC.Dll
+
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Text;
+using System.Windows.Forms;
+using Microsoft.DirectX;
+using Microsoft.DirectX.Direct3D;
+
+namespace Practical2
+{
+    public partial class Form1 : Form
+    {
+        private Device device;
+        private CustomVertex.PositionColored[] vertex = new
+       CustomVertex.PositionColored[3];
+        public Form1()
+        {
+            InitializeComponent();
+
+        }
+
+
+        
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            PresentParameters pp = new PresentParameters();
+            pp.Windowed = true;
+            pp.SwapEffect = SwapEffect.Discard; device = new Device(0, DeviceType.Hardware, this, CreateFlags.HardwareVertexProcessing, pp);
+            device.Transform.Projection = Matrix.PerspectiveFovLH(3.14f / 4, device.Viewport.Width / device.Viewport.Height, 1f, 1000f);
+            device.Transform.View = Matrix.LookAtLH(new Vector3(0, 0, 20), new Vector3(), new Vector3(0, 1, 0));
+            device.RenderState.Lighting = false; vertex[0] = new CustomVertex.PositionColored(new Vector3(), Color.Black.ToArgb());
+            vertex[1] = new CustomVertex.PositionColored(new Vector3(3, 0, 0), Color.Black.ToArgb());
+            vertex[2] = new CustomVertex.PositionColored(new Vector3(0, 3, 0), Color.Black.ToArgb());
+        }
+
+        private void Form1_Paint(object sender, PaintEventArgs e)
+        {
+            device.Clear(ClearFlags.Target, Color.Lavender, 1, 0);
+            device.BeginScene();
+            device.VertexFormat = CustomVertex.PositionColored.Format;
+            device.DrawUserPrimitives(PrimitiveType.TriangleList, vertex.Length / 3, vertex);
+            device.EndScene();
+            device.Present();
+        }
+    }
+}
+
+
+Practical3:Texturing (Texturing the triangle using direct 3D 11)
+Download a Textured Image from the Internet.
+Save it in your project directory
+Follow same procedures as prac 2
+
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Text;
+using System.Windows.Forms;
+using Microsoft.DirectX;
+using Microsoft.DirectX.Direct3D;
+
+namespace Practical3
+{
+    public partial class Form1 : Form
+    {
+        private Device device;
+        private CustomVertex.PositionTextured[] vertex = new CustomVertex.PositionTextured[3];
+        private Texture texture;
+        public Form1()
+        {
+            InitializeComponent();
+        }
+
+
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            PresentParameters pp = new PresentParameters();
+            pp.Windowed = true;
+            pp.SwapEffect = SwapEffect.Discard;
+            device = new Device(0, DeviceType.Hardware, this, CreateFlags.HardwareVertexProcessing, pp);
+            device.Transform.Projection = Matrix.PerspectiveFovLH(3.14f / 4, device.Viewport.Width / device.Viewport.Height, 1f, 1000f);
+            device.Transform.View = Matrix.LookAtLH(new Vector3(0, 0, 20), new Vector3(), new Vector3(0, 1, 0));
+            device.RenderState.Lighting = false;
+            vertex[0] = new CustomVertex.PositionTextured(new Vector3(0, 1, 1), 0, 0);
+            vertex[1] = new CustomVertex.PositionTextured(new Vector3(-5, -5, 1), -1, 0);
+            vertex[2] = new CustomVertex.PositionTextured(new Vector3(5, -5, 1), 0, -1);
+            texture = new Texture(device, new Bitmap("C:\\Users\\vidit\\source\\repos\\Practical3\\Practical3\\Picture1.png"), 0, Pool.Managed);
+
+        }
+
+        private void Form1_Paint(object sender, PaintEventArgs e)
+        {
+            device.Clear(ClearFlags.Target, Color.Black, 1, 0);
+            device.BeginScene();
+            device.SetTexture(0, texture);
+            device.VertexFormat = CustomVertex.PositionTextured.Format;
+            device.DrawUserPrimitives(PrimitiveType.TriangleList, vertex.Length / 3, vertex);
+            device.EndScene();
+            device.Present();
+
+        }
+    }
+}
+
+
+
+
+
+
+CODE-
+PlayerController-
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+
+public class PlayerController : MonoBehaviour
+{
+    public float speed;
+    private Rigidbody2D rbd;
+    public Text winText;
+    public Text countText;
+    public int count = 0;
+
+    // Start is called before the first frame update
+    void Start()
+    {
+        rbd = GetComponent<Rigidbody2D>();
+    }
+
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        if(other.tag=="pickup")
+        {
+            other.gameObject.SetActive(false);
+            count++;
+            setCountText();
+        }
+    }
+
+    void setCountText()
+    {
+        countText.text = "Count " + count.ToString();
+        if(count==10)
+        {
+            winText.text = "You Won!";
+        }
+    }
+
+    // Update is called once per frame
+    void FixedUpdate()
+    {
+        float moveHorizontal = Input.GetAxis("Horizontal");
+        float moveVertical = Input.GetAxis("Vertical");
+        Vector2 movement = new Vector2(moveHorizontal,moveVertical);
+        rbd.AddForce(movement*speed);
+    }
+}
+
+CameraController-
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class CameraController : MonoBehaviour
+{
+    public GameObject player;
+    private Vector3 offset;
+    // Start is called before the first frame update
+    void Start()
+    {
+        offset = transform.position - player.transform.position;
+    }
+
+    // Update is called once per frame
+    void LateUpdate()
+    {
+        transform.position = player.transform.position + offset;
+    }
+}
+
+rotator-
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class rotator : MonoBehaviour
+{
+    // Start is called before the first frame update
+    void Start()
+    {
+        
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        transform.Rotate(new Vector3(0, 0, 45) * Time.deltaTime);
+    }
+}
+
+
+
+Practical7:3D rollball
+CODE-
+
+
+PlayerController-
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+
+public class PlayerController : MonoBehaviour
+{
+    public Text winText;
+    public Text countText;
+    public int count;
+    private Rigidbody rb;
+    public float speed;
+    // Start is called before the first frame update
+    void Start()
+    {
+        count = 0;
+        winText.text = "";
+        rb = GetComponent<Rigidbody>();
+        SetCountText();
+    }
+
+    // Update is called once per frame
+    void FixedUpdate()
+    {
+        float moveHorizontal = Input.GetAxis("Horizontal");
+        float moveVertical = Input.GetAxis("Vertical");
+        Vector3 movement = new Vector3(moveHorizontal, 0.0f, moveVertical);
+        rb.AddForce(movement * speed);
+    }
+
+    void OnTriggerEnter(Collider other)
+    {
+        if (other.gameObject.CompareTag("PickUp"))
+        {
+            other.gameObject.SetActive(false);
+            count = count + 1;
+            SetCountText();
+        }
+    }
+    void SetCountText()
+    {
+        countText.text = "Count : " + count.ToString();
+        if (count >= 8)
+        {
+            winText.text = "You win!";
+        }
+
+    }
+}
+
+
+
+CameraController-
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class CameraController : MonoBehaviour
+{
+    private Vector3 offset;
+    public GameObject player;
+    // Start is called before the first frame update
+    void Start()
+    {
+        offset = transform.position - player.transform.position;
+    }
+
+    // Update is called once per frame
+    void LateUpdate()
+    {
+        transform.position = player.transform.position + offset;
+    }
+}
+
+
+
+Rotator-
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class Rotator : MonoBehaviour
+{
+    // Start is called before the first frame update
+    void Start()
+    {
+        
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        transform.Rotate(new Vector3(15, 30, 45) * Time.deltaTime);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+INS
+
+#Caesar Cipher
+
+dictionary = ['a','b','c','d',
+              'e','f','g','h',
+              'i','j','k','l',
+              'm','n','o','p',
+              'q','r','s','t',
+              'u','v','w','x',
+              'y','z','0','1',
+              '2','3','4','5',
+              '6','7','8','9',
+              '!','@','#','$',
+              '%','^','*']
+
+plain_text = input("Enter Plain Text: ").replace(" ", "").lower()
+key = int(input("Key: "))
+
+
+print("Plain Text: ", plain_text)
+
+# Encryption
+def encryption(text, key):
+    encrypted_text = ""
+    for letter in text:
+        encrypted_text += dictionary[(dictionary.index(letter)+key)%len(dictionary)]
+    return encrypted_text
+
+encrypted_text = encryption(plain_text, key)
+print("Encrypted Text: ", encrypted_text)
+
+# Decryption
+def decryption(text, key):
+    decryted_text =""
+    for letter in text:
+        decryted_text += dictionary[(dictionary.index(letter)-key)%len(dictionary)]
+    return decryted_text
+
+decrypted_text = decryption(encrypted_text, key)
+print("Decrypted Text: ", decrypted_text)
+
+
+
+------------------------------------------------------------------------------------------------------
+
+
+
+# Monoalphabetic Cipher
+
+dictionary = ['a','b','c','d',
+              'e','f','g','h',
+              'i','j','k','l',
+              'm','n','o','p',
+              'q','r','s','t',
+              'u','v','w','x',
+              'y','z']
+
+plain_text = input("Enter Plain Text: ").replace(" ", "").lower()
+
+def encryption(text):
+    encrypted_text = ""
+    for letter in text:
+        encrypted_text += dictionary[-dictionary.index(letter)-1]
+    return encrypted_text
+encrypted_text = encryption(plain_text)
+print("Encrypted text: ", encrypted_text)
+
+def decryption(text):
+    decrypted_text = ""
+    for letter in text:
+        decrypted_text += dictionary[-dictionary.index(letter)-1]
+    return decrypted_text
+
+print("Encrypted text: ", decryption(encrypted_text))
+
+
+---------------------------------------------------------------------------------------------
+
+
+# Vernam Cipher
+
+dictionary = ['a','b','c','d',
+              'e','f','g','h',
+              'i','j','k','l',
+              'm','n','o','p',
+              'q','r','s','t',
+              'u','v','w','x',
+              'y','z']
+
+plain_text = input("Enter Plain Text: ").replace(" ", "").lower()
+
+key = input("Enter key (text) (same length as plain text): ").replace(" ","").lower()
+
+print("Plain Text: ", plain_text)
+
+# Ex-OR operation function
+def performXOR(binary_letter1, binary_letter2):
+    binary_output = ""
+    for i in range(len(binary_letter1)):
+        if binary_letter1[i] == binary_letter2[i]:
+            binary_output += "0"
+        else:
+            binary_output += "1"
+    return binary_output
+
+# Encryption
+def encryption(text, key):
+    encrypted_text = ""
+    for i in range(len(text)):
+        # Converting plain text to binary
+        binary_letter1 = bin(dictionary.index(text[i]))
+        binary_letter2 = bin(dictionary.index(key[i]))
+        
+        # Converting binary numbers to similar length
+        temp = binary_letter1
+        binary_letter1 = "0"*(8-len(temp[2:]))+temp[2:]
+        temp = binary_letter2
+        binary_letter2 = "0"*(8-len(temp[2:]))+temp[2:]
+
+        # Converting binary to letter
+        binary_output = performXOR(binary_letter1, binary_letter2)
+        encrypted_text += dictionary[int(binary_output, 2)%len(dictionary)]
+    return encrypted_text
+
+encrypted_text = encryption(plain_text, key)
+
+print("Encrypted Text: ",encrypted_text)
+    
+def decryption(text, key):
+    decrypted_text = ""
+    for i in range(len(text)):
+        # Converting plain text to binary
+        binary_letter1 = bin(dictionary.index(text[i]))
+        binary_letter2 = bin(dictionary.index(key[i]))
+        
+        # Converting binary numbers to similar length
+        temp = binary_letter1
+        binary_letter1 = "0"*(8-len(temp[2:]))+temp[2:]
+        temp = binary_letter2
+        binary_letter2 = "0"*(8-len(temp[2:]))+temp[2:]
+
+        # Converting binary to letter
+        binary_output = performXOR(binary_letter1, binary_letter2)
+        decrypted_text += dictionary[int(binary_output, 2)%len(dictionary)]
+    return decrypted_text
+
+print("Decrypted Text: ",decryption(encrypted_text, key))
+print("Decrypted Text: ",plain_text)
+
+--------------------------------------------------------------------------------------------------------------------
+
+#Playfair Cipher
+
+#key matrix
+key = [['l','g','d','b','a'],
+       ['q','m','h','e','c'],
+       ['u','r','n','i','f'],
+       ['x','v','s','o','k'],
+       ['z','y','w','t','p']]
+       
+# Taking input and making pairs
+plain_text = input("Enter Plain Text: ").replace(" ", "").replace("j", "i").lower()
+print("Plain Text: ", plain_text)
+
+# bogus_letter should not be there in plain text
+bogus_letter = 'x'
+
+
+def seperate_letters(text):
+    seperated_letters = []
+    i = 1
+    while True:
+        try:
+            if text[i-1] != text[i]:
+                seperated_letters.append(text[i-1]+text[i])
+                i+=2
+            else:
+                seperated_letters.append(text[i]+bogus_letter)
+                i += 1
+        except:
+            if i == len(text):
+                seperated_letters.append(text[-1]+bogus_letter)
+            break
+    return seperated_letters 
+
+
+
+# search element in key:
+def indexOfLetter(key, letter):
+    for i in range(len(key)):
+        for j in range(len(key)):
+            if key[i][j] == letter:
+                return (i,j)
+
+# Encryption
+def encryption(plain_text):
+    encrypted_text = ""
+    seperated_letters = seperate_letters(plain_text)
+    for pair in seperated_letters:
+        letter1_index = indexOfLetter(key, pair[0])
+        letter2_index = indexOfLetter(key, pair[1])
+
+        # rule 1: same column
+        if letter1_index[1] == letter2_index[1]:
+            encrypted_text += key[(letter1_index[0]+1)%len(key)][letter1_index[1]]+key[(letter2_index[0]+1)%len(key)][letter2_index[1]]
+
+        # rule 2: same row
+        elif letter1_index[0] == letter2_index[0]:
+            encrypted_text += key[letter1_index[0]][(letter1_index[1]+1)%len(key)]+key[letter2_index[0]][(letter2_index[1]+1)%len(key)]
+
+        # rule 3: different column and row
+        else:
+            encrypted_text += key[letter1_index[0]][letter2_index[1]]+key[letter2_index[0]][letter1_index[1]]
+    return encrypted_text
+
+encrypted_text = encryption(plain_text)
+
+print("Encrypted Text: ", encrypted_text)
+
+# Deccryption
+def decryption(encrypted_text):
+    decrypted_text = ""
+    seperated_letters = seperate_letters(encrypted_text)
+    for pair in seperated_letters:
+        letter1_index = indexOfLetter(key, pair[0])
+        letter2_index = indexOfLetter(key, pair[1])
+
+        # rule 1: same column
+        if letter1_index[1] == letter2_index[1]:
+            decrypted_text += key[(letter1_index[0]-1)%len(key)][letter1_index[1]]+key[(letter2_index[0]-1)%len(key)][letter2_index[1]]
+
+        # rule 2: same row
+        elif letter1_index[0] == letter2_index[0]:
+            decrypted_text += key[letter1_index[0]][(letter1_index[1]-1)%len(key)]+key[letter2_index[0]][(letter2_index[1]-1)%len(key)]
+
+        # rule 3: different column and row
+        else:
+            decrypted_text += key[letter1_index[0]][letter2_index[1]]+key[letter2_index[0]][letter1_index[1]]
+    return decrypted_text
+decrypted_text = decryption(encrypted_text)
+decrypted_text =  decrypted_text.replace(bogus_letter, "")
+print("Decryted_text: ", decrypted_text)
+
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+#railfence cipher 
+
+
+plain_text = input("Enter Plain Text: ").replace(" ", "").lower()
+rails = int(input("Enter number of Rails: "))
+railfence = [[" "] * len(plain_text) for _ in range(rails)]
+
+def encrypt(text, r):
+    encipher = ""
+    i = 0
+    times = 1
+    flag = True
+    for j in range(len(text)):
+        railfence[i][j] = text[j]
+        if j % r == r - times:
+            times = (times % r) + 1
+            flag = not flag
+        if flag:
+            i += 1
+        else:
+            i -= 1
+
+    print("Railfence: ")
+    for x in railfence:
+        print(x)
+
+    for x in railfence:
+        for z in x:
+            if z != " ":
+                encipher += z
+
+    return encipher
+
+print("Plain Text: ", plain_text)
+encrypted_text = encrypt(plain_text, rails)
+print("Encrypted Text: ", encrypted_text)
+
+def decrypt(text, r):
+    decipher = ""
+    i = 0
+    times = 1
+    flag = True
+    for j in range(len(text)):
+        railfence[i][j] = '*'
+        if j % r == r - times:
+            times = (times % r) + 1
+            flag = not flag
+        if flag:
+            i += 1
+        else:
+            i -= 1
+
+    index = 0
+    for k in range(r):
+        for j in range(len(text)):
+            if railfence[k][j] == '*':
+                railfence[k][j] = text[index]
+                index += 1
+
+    print("Railfence: ")
+    for x in railfence:
+        print(x)
+
+    for k in range(len(text)):
+        for j in range(r):
+            if railfence[j][k] != " ":
+                decipher += railfence[j][k]
+
+    return decipher
+
+decrypted_text = decrypt(encrypted_text, rails)
+print("Decrypted Text: ", decrypted_text)
+
+
+
+
+
+
+################# WS ##################
+#### (SOAP)Prac 1:Create a TimeServer webservice in Java and Consume it in java and other technologies like php and .NET
+Project: Java - java web application
+Right click on the web application and create a new web service
+Give a name to package - Finish
+
+Go to design
+Remove the operation already there
+Then add new operation
+First operation name - GetTimeAsString (string)
+Second operation name - GetTimeasElapsed (long)
+
+Go to source code and replace 
+• return null with return new java.util.Date().to string();
+• return 0 with return new java.util.Date().getTime();
+
+Deploy it and then test the web service in web services folder
+Check the buttons if the value is there
+Copy the Wsdl file link 
+Now make a new web application and put the name as xyz_client
+Right click and make a web service client
+Wsdl url mai add the Wsdl link
+Delete the index.html and make it index.jsp
+Now drag and drop in the body tag from web service reference in there
+And then write "time elapsed" in the println function of println and same in time string .
+Run the index.jsp file
+Now open visual studio and now create a new project Console app(.net framework)
+Then soln explorer mai jaake add references and add service reference and add the Wsdl url in in address and go and ok.
+Then write in the code
+
+Servicereference1.Xyz_client client = new Servicereference1.Xyz_client();
+Console.WriteLine("Time as string:"+client.getTimeAsString());
+Console.WriteLine("Time as Elapsed:"+client.getTimeAsElapsed());
+Console.Read();
+
+Now open notepad for php and xampp
+go to xampp->php->php configuration settings file and search extension= and you'll get many values and change the first extension=php_soap.dll to soap.
+And also remove the ; from the front.
+Now write the code for php in notepad
+
+<?php>
+$client = new SoapClient("Wsdl url");
+$t1=$client ->GetTimeasElapsed ();
+echo "Elapsed time is", $t1 -> return;
+$t2=$client ->GetTimeAsString ();
+echo "<br>string time is", $t2 -> return;
+<?>
+
+Save in htdocs and run in localhost
+
+
+
+
+
+
+
+
+#### (SOAP)Prac 2:Java WS for performing basic calculations like addition, subtraction ,multiplication and Division and create a java client that consumes the same
+New project: java- java web application 
+Right click Add new webservice and add a package name
+Design and delete operation
+Add operations name add(double), sub(double), mul (double), div(double)
+with parameters a and b (both double)
+And in return 0.0 replace it with a+b,a-b.…..
+Deploy and test and get the Wsdl link 
+Now new web application for client and add webservices client and add the url for Wsdl
+Make a form with inputs in index.html :
+
+<form action= "operation.jsp">
+Enter first number <input type ....>
+ ye wala pura code from journal
+</Form>
+
+Now make a new jsp file usme hi as operation.jsp
+And drag and drop the web service references into the body tag
+Remove the <% wale in the middle 
+Remove the double a and b in the try blocks
+Now before the first try block
+add the code 
+
+double a =Double.parseInt(request.getParameter("first"));
+double b =Double.parseInt(request.getParameter("second"));
+String choice = request.getParameter("operations");
+if(choice.equals ("add")){ 
+Add the try block in this first wala
+}
+else if(choice.equals("sub")){
+Add the second try block
+}
+.
+.      So on for mul and div
+. 
+
+Save and run
+
+
+
+
+
+
+
+
+#### (SOAP)Prac 3:web service that gives NSE Index,BSE Index,Gold Rate
+new project- java - java web application
+go to services and click on Java db, and create a new database and then connect jdbc derby wala
+Now create a new table in it with columns NSE , BSE , GOLDRATE with int type
+View data in prac 3 table
+And insert data in the table
+Now add operations in design as
+GetNse, getBse, getGoldrate - all return type as int
+
+Now in getBSE(){
+int bse=0;
+try{
+Class.forname(" copy the driver class from jdbc derby ke properties");
+Connection con = DriverManager.getConnection("copy the jdbc derby properties and copy the database url", "username","password");
+Statement stmt = con.createStatement();
+ResultSet rs = stmt.executeQuery("select * from table name ");
+rs.next();                import the SQL wale statements   
+bse = rs.getIng("BSE");            
+
+} catch(Exception e) {
+
+}
+Return bse;
+}
+
+getNSE(){
+int nse=0;
+try{
+Class.forname(" copy the driver class from jdbc derby ke properties");
+Connection con = DriverManager.getConnection("copy the jdbc derby properties and copy the database url", "username","password");
+Statement stmt = con.createStatement();
+ResultSet rs = stmt.executeQuery("select * from table name ");
+rs.next();                import the SQL wale statements   
+bse = rs.getIng("NSE");            
+
+} catch(Exception e) {
+
+}
+Return nse;
+}
+
+.
+.
+.
+ Similar for gold
+
+Now deploy and test and get the Wsdl url
+Make a client for the same
+new project-> web application -> add webservices client and paste the Wsdl url
+Replace index.html with index.jsp
+Drag and drop web service references in body tag
+
+
+
+
+
+
+#### (SOAP)Prac 4:college name and rating
+new project- java - java web application
+Add new webservice with package 
+Now create a new table in the same db with columns clg , rating  with varchar type and give size.
+View data of this table and insert data
+Now design mai jaake
+Remove and add a new operation as 
+Get rating with return type as string
+Parameter as college_name
+
+getRating (){
+String rating="";
+try{
+Class.forname(" copy the driver class from jdbc derby ke properties");
+Connection con = DriverManager.getConnection("copy the jdbc derby properties and copy the database url", "username","password");
+PreparedStatement stmt = con.preparedstatement("select * from table name where college name=?");
+stmt.setString(1,college name);
+ResultSet rs = stmt.executeQuery();
+rs.next();                import the SQL wale statements   
+Rating = rs.getString("rating");            
+
+} catch(Exception e) {
+
+}
+Return rating;
+}
+
+Deploy and test and get the Wsdl url 
+
+Now client
+New web application and add web services client with the Wsdl url
+Now make a jsp file as rating.jsp
+Now in index.html make a form-
+
+<form action="clgs.jsp">
+  Enter College Name: <input type="text" name="CollegeName" value="" /><br>
+  <input type="submit" value="Submit" name="Submit" />
+</form>
+
+Now in jsp drag and drop in body from web references
+Now above try block
+
+String college_name= request.getParameter("name in index.html");
+
+Save and run
+
+
